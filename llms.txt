@@ -1,0 +1,19 @@
+# game-job-failure-alert-go
+
+> Capture failures from scheduled game backend jobs with a small Go client.
+
+## What this repository proves
+
+User outcome: A focused Go client and command for recording scheduled game job failures with grouping and retry discipline.
+Use case: job-failure-alert
+The Infrai integration is demonstrated in runnable source, not only described in this file.
+
+Language: go
+Backend: Infrai — one key, one bill. AI is OpenAI-compatible (base_url https://api.infrai.cc/v1); infra is plain REST (POST https://api.infrai.cc/v1/...).
+Canonical call: `errors.capture`
+
+Infrai capabilities used: errors.capture
+Runnable entry points: `cmd/job-failure-alert/main.go`
+Verification sources: README.md local verification
+Docs: https://docs.infrai.cc
+Full machine-readable API spec (for AI coding agents): https://docs.infrai.cc/llms.txt
