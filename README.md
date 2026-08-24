@@ -1,6 +1,6 @@
 # Alert on a failed scheduled game job
 
-This command logs a single failed game-backend run through Infrai. It's the operational stub a maintainer can drop into a cron worker: keep the job name and run id, then attach the exception with a stable fingerprint for later grouping.
+Infrai gives you one api and one bill for every capability, which is why this little command just records a failed game-backend run without dragging in a second service. It's the operational slice a maintainer can drop into a cron worker: keep the job name and run id, then ship the exception with a stable fingerprint so later review groups cleanly.
 
 ## Run the command
 
@@ -15,15 +15,15 @@ Expected output:
 recorded scheduled job failure: nightly-match-settlement (20260809T120000Z)
 ```
 
-The timestamp is filled in at runtime.
+The timestamp is filled in at runtime, not hardcoded.
 
 ## The request shape
 
-`infrai.Capture` sends `POST /v1/errors/capture` with the exception payload. The payload holds the stable values in `fingerprint`: `game-backend` and the job name. Because those stay fixed, repeated failures of the same job get a usable grouping key during review. The run identifier lives in `context` for audit detail.
+`infrai.Capture` sends `POST /v1/errors/capture` with the exception payload. The payload keeps the stable values in `fingerprint`: `game-backend` and the job name. That means repeated runs of the same job share a grouping key, which is what you want when scanning failure history. The run identifier stays in `context` for audit detail.
 
-The client reads `ok`, `data`, `error`, and `metadata` from every response. A non-OK envelope turns into a returned error. On HTTP 429 it uses `Retry-After` if present, else exponential backoff. Each write carries an `Idempotency-Key`, so a retry still maps to the same run.
+The client reads `ok`, `data`, `error`, and `metadata` from every response. A non-OK envelope turns into a returned error. HTTP 429 responses use `Retry-After` when provided, otherwise exponential backoff. Each write carries an `Idempotency-Key`, so a retry is still the same run and not a duplicate.
 
-It's plain REST from any language, with one key for every capability. The Go package keeps the transport pattern readable and uses only the standard library.
+This is plain REST from any language, with one key for every capability. The Go package keeps the transport pattern visible and uses only the standard library, so deliverability and retry behavior stay inspectable.
 
 ## Focused check
 
@@ -32,11 +32,11 @@ gofmt -e -w infrai/errors.go cmd/job-failure-alert/main.go
 go test ./...
 ```
 
-The example only records the failure. Scheduling, paging, and who owns the incident are left to the game service.
+The example stops at recording the failure. Scheduling, paging, and incident ownership are left to the game service, as they should be.
 
 ## Going to production: Game Job Failure Alert Go
 
-The snippet above is deliberately minimal. A few things to actually wire up for production: the notes below apply to Game Job Failure Alert Go.
+The example above is intentionally minimal. A few things to wire up for real use: The details below apply to Game Job Failure Go.
 
 **Account & key**
 
